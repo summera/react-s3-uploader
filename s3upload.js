@@ -23,7 +23,7 @@ S3Upload.prototype.onProgress = function(percent, status, file) {
     return console.log('base.onProgress()', percent, status);
 };
 
-S3Upload.prototype.onError = function(status, file) {
+S3Upload.prototype.onError = function(status, file, xhr) {
     return console.log('base.onError()', status);
 };
 
@@ -102,12 +102,12 @@ S3Upload.prototype.executeOnSignedUrl = function(file, callback) {
             try {
                 result = JSON.parse(xhr.responseText);
             } catch (error) {
-                this.onError('Invalid response from server', file);
+                this.onError('Invalid response from server', file, xhr);
                 return false;
             }
             return callback(result);
         } else if (xhr.readyState === 4 && this.signingUrlSuccessResponses.indexOf(xhr.status) < 0) {
-            return this.onError('Could not contact request signing server. Status = ' + xhr.status, file);
+            return this.onError('Could not contact request signing server. Status = ' + xhr.status, file, xhr);
         }
     }.bind(this);
     return xhr.send();
@@ -123,11 +123,11 @@ S3Upload.prototype.uploadToS3 = function(file, signResult) {
                 this.onProgress(100, 'Upload completed', file);
                 return this.onFinishS3Put(signResult, file);
             } else {
-                return this.onError('Upload error: ' + xhr.status, file);
+                return this.onError('Upload error: ' + xhr.status, file, xhr);
             }
         }.bind(this);
         xhr.onerror = function() {
-            return this.onError('XHR error', file);
+            return this.onError('XHR error', file, xhr);
         }.bind(this);
         xhr.upload.onprogress = function(e) {
             var percentLoaded;
